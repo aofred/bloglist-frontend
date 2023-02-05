@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
+import BlogForm from './components/BlogForm'
+import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
 
@@ -9,6 +11,9 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState('')
+  const [title, setTitle] = useState('')
+  const [author, setAuthor] = useState('')
+  const [url, setUrl] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
@@ -56,22 +61,29 @@ const App = () => {
     blogService.setToken('')
   }
 
-  
-  /*
-  const blogForm = () => {
-    <form onSubmit={addBlog}>
-      <input
-        value={newBlog}
-        onChange={handleBlogChange}
-      />
-    </form>
-  }
-  */
+  const addBlog = async (event) => {
+    event.preventDefault()
 
-  // FIX 
+    try {
+      const newBlog = await blogService.create({ 
+        title, author, url
+       })
+       setErrorMessage(`${title} by ${author} added`)
+       setTitle('')
+       setAuthor('')
+       setUrl('')
+    } catch (exception) {
+      setErrorMessage('Could not create a new blog')
+    }
+    setTimeout(() => {
+      setErrorMessage(null)
+    }, 5000)
+  }
+
   if (!user) {
     return (
       <div>
+        <Notification message={errorMessage} />
         <LoginForm 
           handleLogin={handleLogin} 
           username={username} 
@@ -85,16 +97,26 @@ const App = () => {
 
   return (
     <div>
-      <h2>Blogs</h2>
-      <p>{user.name} logged in</p>
-      <button 
-      type="button" 
-      onClick={handleLogout}>
-        Log out
-      </button>
-      {blogs.map(blog =>
-      <Blog key={blog.id} blog={blog} />
-      )}
+      <div>
+        <Notification message={errorMessage}/>
+        <h2>Blogs</h2>
+        <p>{user.name} logged in</p>
+        <button 
+        type="button" 
+        onClick={handleLogout}>
+          Log out
+        </button>
+        {blogs.map(blog =>
+        <Blog key={blog.id} blog={blog} />
+        )}
+      </div>
+      <div>
+        <BlogForm 
+        addBlog={addBlog} 
+        title={title} setTitle={setTitle} 
+        author={author} setAuthor={setAuthor} 
+        url={url} setUrl={setUrl}/>
+      </div>
     </div>
   )
 }
